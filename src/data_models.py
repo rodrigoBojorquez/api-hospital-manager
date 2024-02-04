@@ -64,3 +64,7 @@ class Patient(UserBase):
     address: str | None = None
     date_of_birth: date | None = None
     emergency_contact: PhoneNumber
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
