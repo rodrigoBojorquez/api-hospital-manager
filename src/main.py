@@ -7,7 +7,7 @@ load_dotenv()
 app = FastAPI()
 
 
-@app.get('/home')
+@app.get('/')
 def home():
     welcome = f'''
         <!DOCTYPE html>
