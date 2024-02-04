@@ -1,13 +1,13 @@
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
-from dotenv import load_dotenv
-import os
-from .routers import public
+from .routers import public, doctors, users
 
-load_dotenv()
 app = FastAPI(title="Medical appointment manager")
 
+# ROUTERS
 app.include_router(public.router)
+app.include_router(users.router)
+app.include_router(doctors.router)
 
 @app.get('/')
 def home():

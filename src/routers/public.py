@@ -1,10 +1,14 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import JSONResponse
+from fastapi.security import OAuth2PasswordRequestForm
 from ..data_models import Patient, Doctor, UserInDb
 from ..database import db
 from datetime import datetime
 from passlib.context import CryptContext
 from pymongo.errors import DuplicateKeyError
+from typing_extensions import Annotated
+from icecream import ic
+from datetime import date
 
 router = APIRouter(
     prefix="/public",
@@ -37,17 +41,18 @@ async def register_doctor(doctor: Doctor):
         raise HTTPException(status_code=401, detail={"error": "the email or the license number are already in use"})
 
 
-@router.post("/login")
-async def login(user: UserInDb):
-    response = db.users.find_one({'email': user.email})
-    if not response:
-        raise HTTPException(status_code=404,  detail='user not found')
-    if not verify_password(response.password):
-        raise HTTPException(status_code=401,  detail='incorrect password')
-    
-    print(response)
-
-    return JSONResponse(content={"message": "user autenticated successfully"}, status_code=201)
+@router.post("/token")
+async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
+    user_dict = db["patients"].find_one({"email": form_data.username})
+    if not user_dict:
+        raise HTTPException(status_code=401,  detail="incorrect username or password")
+    user_dict["_id"] = str(user_dict["_id"])
+    user_dict["date_of_birth"] = user_dict["date_of_birth"].isoformat()
+    # check password
+    if not verify_password(form_data.password, user_dict["password"]):
+        raise HTTPException(status_code=401, detail="incorrect username or password")
+    ic(user_dict)
+    return JSONResponse(content={"access_token": form_data.password, "token_type": "bearer"})
 
 def verify_password(password, hash):
     return pwd_context.verify(password, hash)
