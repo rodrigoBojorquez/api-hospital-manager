@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
-from .routers import public, doctors, users
+from .routers import public, doctors, users, admin
 
 app = FastAPI(title="Medical appointment manager")
 
@@ -8,6 +8,7 @@ app = FastAPI(title="Medical appointment manager")
 app.include_router(public.router)
 app.include_router(users.router)
 app.include_router(doctors.router)
+app.include_router(admin.router)
 
 @app.get('/')
 def home():

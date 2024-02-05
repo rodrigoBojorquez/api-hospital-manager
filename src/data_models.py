@@ -23,6 +23,9 @@ class UserInDb(BaseModel):
     email: EmailStr = Field(min_length=5, max_length=255)
     password: str = Field(min_length=5, max_length=255)
 
+class Developer(UserBase):
+    rol: str  = "developer"
+
 class Appointment(BaseModel):
     user_id: ObjectId
     doctor_id: ObjectId
@@ -55,6 +58,7 @@ class Doctor(UserBase):
     contact_number: PhoneNumber
     license_number: str = Field(max_length=255)
     clinic: Clinic
+    rol: str =  "doctor"
     education: list[Degree] = Field(default=[])
     experience: list[Experience] = Field(default=[])
 
