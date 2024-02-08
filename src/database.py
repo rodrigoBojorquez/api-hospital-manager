@@ -7,5 +7,8 @@ load_dotenv()
 client = MongoClient(os.environ["DATABASE_HOST"], int(os.environ["DATABASE_PORT"]))
 db = client.hospital
 
-db["users"].create_index(["email"], unique=True)
-db["users"].create_index(["license_number"], unique=True)
+if "email_1" not in db.users.index_information():
+    db["users"].create_index("email", unique=True)
+
+if "license_number_1" not in db.users.index_information():
+    db["users"].create_index("license_number", unique=True)
