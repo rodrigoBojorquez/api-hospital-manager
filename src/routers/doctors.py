@@ -22,7 +22,7 @@ async def get_all_doctors():
     for doctor in response:
         doctor["_id"] = str(doctor["_id"])
         doctors.append(doctor)
-    ic(doctors)
+    # ic(doctors)
     return JSONResponse(content={"message": "successfull request", "token": doctors}, status_code=201)
 
 @router.post("/education/{id}")
@@ -40,9 +40,11 @@ async def add_degree(id: ObjectId, degree: Degree):
 async def add_doctor_experience(id: ObjectId, experience: Experience):
     doctor = await validate_doctor(id)
     await validate_experience(doctor, experience)
-    response = db["users"].update_one(
+    to_json = experience.model_dump()
+    to_json["_id"] = _ObjectId()
+    db["users"].update_one(
         {"_id": _ObjectId(id)},
-        { "$push": {"experience": experience.model_dump()}}
+        { "$push": {"experience": to_json}}
     )
     return JSONResponse(content={"message": "work experience aggregate successfully"}, status_code=201)
 
@@ -55,26 +57,41 @@ async def get_doctor_experience(id: ObjectId):
         "data":exp
     },status_code=200)
 
-'''
-    TODO:
-        - agregar validacion de maximo 10 experiencias laborales
-        - agregar un ID a cada experiencia laboral
-'''
+@router.put("/experience/{id}/{experience_id}")
+async def update_doctor_experience(id: ObjectId, experience_id: ObjectId, newExperience: Experience):
+    doctor = await validate_doctor(id)
+    collection = db["users"]
+    await validate_experience(doctor["experience"], newExperience, experience_id)
+    to_json = newExperience.model_dump()
+    to_json["_id"] = _ObjectId(experience_id)
+    collection.update_one({"experience._id": _ObjectId(experience_id)}, {"$set": {"experience.$": to_json}})
+    # ic(doctor["experience"])
+    return JSONResponse(content={
+        "message": "work experience successfully updated",
+    }, status_code=201)
 
-@router.put("/experience/{id}")
-async def update_doctor_experience(id: ObjectId, newExperience: Experience):
-    return
+@router.delete("/experience/{id}/{experience_id}")
+async def delete_doctor_experience(id: ObjectId, experience_id: ObjectId):
+    await validate_doctor(id)
+    collection = db["users"]
+    collection.delete_one({"experience._id": _ObjectId(experience_id)})
+    return JSONResponse(content={
+        "message": "work experience successfully deleted"
+    })
 
 async def validate_doctor(id: _ObjectId):
-    ic(id)
+    # ic(id)
     collection = db["users"]
     doctor = collection.find_one({"_id": _ObjectId(id), "rol": "doctor"})
     if not doctor:
         raise HTTPException(status_code=404, detail="doctor not found")
     return doctor
 
-async def validate_experience(doctor, experience):
-    existing_exp = next((exp for exp in doctor["experience"] if exp == experience.model_dump()), None)
+async def validate_experience(exps, experience, id):
+    experiences = [{key: value for key, value in exp.items() if key != "_id"} for exp in exps]
+    existing_exp = next((exp for exp in experiences if exp == experience.model_dump()), None)
     if existing_exp:
-        raise HTTPException(status_code=400, detail="this work experience is already registered")
+        raise HTTPException(status_code=400, detail="this work experience is already registered") 
+    if _ObjectId(id) not in {exp["_id"] for exp in exps}:
+        raise HTTPException(status_code=404, detail="experience not found with provided id")
     return
