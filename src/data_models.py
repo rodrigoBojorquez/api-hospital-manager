@@ -61,6 +61,18 @@ class Doctor(UserBase):
     rol: str =  "doctor"
     education: list[Degree] = Field(default=[])
     experience: list[Experience] = Field(default=[])
+    about: str = Field(default="")
+
+class UpdateDoctor(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True)
+    username: str = Field(default=None, min_length=5, max_length=255)
+    lastname: str = Field(default=None, min_length=5, max_length=255)
+    email: EmailStr = Field(default=None)
+    speciality: str = Field(default=None, min_length=5, max_length=255)
+    contact_number: PhoneNumber = Field(default=None)
+    license_number: str = Field(default=None, max_length=255)
+    about: str = Field(default=None, min_length=5)
+
 
 class Patient(UserBase):
     appointments: list[str] = Field(default=[])
