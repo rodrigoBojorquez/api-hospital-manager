@@ -102,7 +102,6 @@ async def update_doctor_experience(id: ObjectId, experience_id: ObjectId, newExp
     to_json = newExperience.model_dump()
     to_json["_id"] = _ObjectId(experience_id)
     collection.update_one({"experience._id": _ObjectId(experience_id)}, {"$set": {"experience.$": to_json}})
-    # ic(doctor["experience"])
     return JSONResponse(content={
         "message": "work experience successfully updated",
     }, status_code=201)
