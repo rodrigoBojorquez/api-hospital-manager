@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 from typing_extensions import Annotated
-from ..data_models import UserInDb
+from ..data.data_models import UserInDb
 
 # DEPENDENCIES
 from ..dependencies.global_dep import get_current_user

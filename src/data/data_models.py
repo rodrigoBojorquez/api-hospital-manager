@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field, EmailStr, ConfigDict
-from .validators import check_object_id
+from ..validators import check_object_id
 from pydantic.functional_validators import AfterValidator
-from datetime import datetime, date
+from datetime import datetime, date, time
 from typing import Annotated
 
 
@@ -12,8 +12,8 @@ ObjectId = Annotated[str, AfterValidator(check_object_id)]
 # MODELS
 class UserBase(BaseModel):
     model_config = ConfigDict(str_strip_whitespace=True)
-    username: str = Field(min_length=5, max_length=255)
-    lastname: str = Field(min_length=5, max_length=255)
+    username: str = Field(min_length=3, max_length=255)
+    lastname: str = Field(min_length=3, max_length=255)
     email: EmailStr = Field(min_length=5, max_length=255)
     password: str = Field(min_length=5, max_length=255)
     rol: str = Field(default="patient")
@@ -27,7 +27,7 @@ class Developer(UserBase):
     rol: str  = "developer"
 
 class Appointment(BaseModel):
-    user_id: ObjectId
+    patient_id: ObjectId
     doctor_id: ObjectId
     date: datetime
     commentary: str | None = None
@@ -54,7 +54,10 @@ class Experience(BaseModel):
 
 class Doctor(UserBase):
     speciality: str = Field(default=None, min_length=5,  max_length=100)
-    appointments: list[str] = Field(default=[])
+    start_work: time
+    finish_work: time
+    work_days: list[str]
+    appointments: list[ObjectId] = Field(default=[])
     contact_number: PhoneNumber
     license_number: str = Field(max_length=255)
     clinic: Clinic
@@ -75,7 +78,7 @@ class UpdateDoctor(BaseModel):
 
 
 class Patient(UserBase):
-    appointments: list[str] = Field(default=[])
+    appointments: list[ObjectId] = Field(default=[])
     contact_number: PhoneNumber
     address: str | None = None
     date_of_birth: date | None = None

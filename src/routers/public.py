@@ -1,8 +1,8 @@
 from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordRequestForm
-from ..data_models import Patient, Doctor
-from ..database import db
+from ..data.data_models import Patient, Doctor
+from ..data.database import db
 from ..config import pwd_context, SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES
 from datetime import datetime
 from passlib.context import CryptContext
@@ -33,15 +33,18 @@ async def register_user(patient: Patient):
 async def register_doctor(doctor: Doctor):
     try:
         doctors = db['users']
+        license_exist = doctors.find_one({"rol": "doctor", "license_number": doctor.license_number})
+        if license_exist:
+            raise HTTPException(status_code=400, detail="licence number alreardy in use")
         # hast pwd
         doctor.password = get_password_hash(doctor.password)
         doctors.insert_one(doctor.model_dump())
         return JSONResponse(content={"message": "doctor added successfully"}, status_code=201)
     except DuplicateKeyError:
-        raise HTTPException(status_code=400, detail={"error": "the email or the license number are already in use"})
+        raise HTTPException(status_code=400, detail={"error": "the email is already in use"})
 
 
-@router.post("/token")
+@router.post("/token", include_in_schema=False)
 async def login_for_token(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
     user_dict = db["users"].find_one({"email": form_data.username})
     if not user_dict:

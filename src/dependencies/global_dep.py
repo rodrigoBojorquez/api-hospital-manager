@@ -2,9 +2,9 @@
 from typing_extensions import Annotated
 from fastapi import Depends, HTTPException
 from ..config import oauth2_scheme, ALGORITHM, SECRET_KEY
-from ..data_models import UserInDb
+from ..data.data_models import UserInDb
 from jose import JWTError, jwt
-from ..database import db
+from ..data.database import db
 from icecream import ic
 
 async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
@@ -32,5 +32,6 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
             headers={"WWW-Authenticate": "Bearer"}
         )
     user["_id"] = str(user["_id"])
-    user["date_of_birth"] = user["date_of_birth"].isoformat()
+    if user["rol"] == "patient":
+        user["date_of_birth"] = user["date_of_birth"].isoformat()
     return user

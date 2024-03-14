@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
-from ..data_models import Developer
-from ..database import db
+from ..data.data_models import Developer
+from ..data.database import db
 from icecream import ic
 
 router = APIRouter(
