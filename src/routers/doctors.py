@@ -23,8 +23,9 @@ async def get_all_doctors() -> list[Doctor]:
     doctors = []
     for doctor in response:
         doctor["_id"] = str(doctor["_id"])
-        for exp in doctor["experience"]:
-            exp["_id"] = str(exp["_id"])
+        del doctor["experience"]
+        del doctor["education"]
+        del doctor["appointments"]
         doctors.append(doctor)
     return JSONResponse(content={"message": "successfull request", "response": doctors}, status_code=201)
 
